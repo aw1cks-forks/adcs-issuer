@@ -1,4 +1,4 @@
-name: Golang lint issuer
+name: Code Linting
 on:
   workflow_dispatch:
   push:
