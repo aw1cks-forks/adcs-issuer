@@ -34,8 +34,8 @@ kos:
   - id: adcs-issuer
     bare: true
     repositories:
-      - docker.io/djkormo/adcs-issuer
-      - ghcr.io/djkormo/adcs-issuer
+      - docker.io/aw1cks/adcs-issuer
+      - ghcr.io/aw1cks-forks/adcs-issuer
     platforms:
       - linux/amd64
       - linux/arm64
