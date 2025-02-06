@@ -5,13 +5,20 @@ crd:
 
 # @section ADCS Issuer Controller Manager
 controllerManager:
+  terminationGracePeriodSeconds: 30
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: "topology.kubernetes.io/zone"
+      whenUnsatisfiable: ScheduleAnyway
 
   # @section Image
   # Image settings for the ADCS Issuer manager.
   manager:
     image:
       repository: djkormo/adcs-issuer  # The repository for the ADCS Issuer Docker image.
-      tag: 2.1.2                       # The tag for the ADCS Issuer Docker image.
+      tag: null                        # The tag for the ADCS Issuer Docker image. defaults to .Chart.AppVersion
+      pullPolicy: Always               # The image pull policy. One of 'Always', 'IfNotPresent', 'Never'
     
     # @section Resources
     # Resource requests and limits for the ADCS Issuer container.
@@ -43,6 +50,13 @@ controllerManager:
       timeoutSeconds: 20
       periodSeconds: 20
       initialDelaySeconds: 10
+
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
 
   # @section RBAC
   # Role-Based Access Control (RBAC) settings for the controller manager.

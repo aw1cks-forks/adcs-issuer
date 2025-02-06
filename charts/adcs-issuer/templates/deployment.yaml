@@ -1,129 +1,123 @@
-apiVersion: apps/v1
+---
+apiVersion: v1
 kind: Deployment
 metadata:
-  name: {{ include "adcs-issuer.fullname" . }}-controller-manager
-  namespace: {{ .Release.Namespace }}
+  name: {{ printf "%s-controller-manager" (include "adcs-issuer.fullname" .) | squote }}
   labels:
-    control-plane: controller-manager
-    {{- include "adcs-issuer.labels" . | nindent 4 }}
+{{- include "adcs-issuer.labels" . | nindent 4}}
+    app.kubernetes.io/component: controller-manager
 spec:
   replicas: {{ .Values.controllerManager.replicas }}
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      control-plane: controller-manager
-      {{- include "adcs-issuer.selectorLabels" . | nindent 6 }}
+{{- include "adcs-issuer.labels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        control-plane: controller-manager
-        {{- include "adcs-issuer.selectorLabels" . | nindent 8 }}
+{{- include "adcs-issuer.labels" . | nindent 8 }}
+        app.kubernetes.io/component: controller-manager
     spec:
-      {{- if .Values.controllerManager.topologySpreadConstraints }}
-      topologySpreadConstraints:
-        {{- toYaml .Values.controllerManager.topologySpreadConstraints | nindent 8 }}
-      {{- else }}
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: "topology.kubernetes.io/zone"
-          whenUnsatisfiable: ScheduleAnyway
-      {{- end }}
-
-      {{- if .Values.controllerManager.nodeAffinity }}
-      affinity:
-        nodeAffinity:
-          {{- toYaml .Values.controllerManager.nodeAffinity | nindent 10 }}
-      {{- end }}
-
-      {{- if .Values.controllerManager.podAffinity }}
-        podAffinity:
-          {{- toYaml .Values.controllerManager.podAffinity | nindent 10 }}
-      {{- end }}
-
-      {{- if .Values.controllerManager.podAntiAffinity }}
-        podAntiAffinity:
-          {{- toYaml .Values.controllerManager.podAntiAffinity | nindent 10 }}
-      {{- end }}
-
-      {{- if .Values.controllerManager.tolerations }}
-      tolerations:
-        {{- toYaml .Values.controllerManager.tolerations | nindent 8 }}
-      {{- end }}
-
       containers:
-        - name: manager
-          image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag | default .Chart.AppVersion }}
-          imagePullPolicy: Always
-          command:
-            - /manager
-          {{- if .Values.controllerManager.arguments }}
+        - name: controller-manager
+{{- $image := printf "%s:%s" .Values.controllerManager.manager.image.repository (default .Chart.AppVersion .Values.controllerManager.manager.image.version) }}
+          image: {{ squote $image }}
+          imagePullPolicy: {{ squote .Values.controllerManager.manager.image.pullPolicy }}
+{{- with .Values.controllerManager.arguments }}
           args:
-            {{- range $key, $value := .Values.controllerManager.arguments }}
-            - --{{ $key }}{{ if $value }}={{ $value }}{{ end }}
-            {{- end }}
-          {{- end }}
+{{-   range $k, $v := . }}
+            - --{{ $k }}{{ if $v }}={{ $v }}{{ end }}
+{{-   end }}
+{{- end }}
           env:
-            - name: KUBERNETES_CLUSTER_DOMAIN
-              value: {{ .Values.controllerManager.environment.KUBERNETES_CLUSTER_DOMAIN | quote }}
-            - name: ENABLE_WEBHOOKS
-              value: {{ .Values.controllerManager.environment.ENABLE_WEBHOOKS | quote }}
-            - name: ENABLE_DEBUG
-              value: {{ .Values.controllerManager.environment.ENABLE_DEBUG | quote }}
             - name: POD_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
+{{- with $.Values.controllerManager.environment }}
+{{-   range $k, $v := . }}
+            - name: {{ squote $k }}
+              value: {{ squote $v }}
+{{-   end }}
+{{- end }}
           ports:
             - containerPort: 9443
               name: webhook-server
               protocol: TCP
+            - containerPort: 8080
+              name: metrics
+              protocol: TCP
+{{- with $.Values.controllerManager.manager.resources }}
           resources:
-            {{- toYaml .Values.controllerManager.manager.resources | nindent 12 }}
-          {{- with .Values.controllerManager.manager.readinessProbe }}
+{{-   toYaml . | nindent 12 }}
+{{- end }}
+{{- with $.Values.controllerManager.manager.readinessProbe }}
           readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.controllerManager.manager.livenessProbe }}
+{{-   toYaml . | nindent 12 }}
+{{- end }}
+{{- with $.Values.controllerManager.manager.livenessProbe }}
           livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+{{-   toYaml . | nindent 12 }}
+{{- end }}
+{{- with $.Values.controllerManager.manager.securityContext }}
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
+{{-   toYaml . | nindent 12 }}
+{{- end }}
           volumeMounts:
-            {{- if .Values.controllerManager.enabledWebHooks }}
+{{- if .Values.controllerManager.enabledWebHooks }}
             - mountPath: /tmp/k8s-webhook-server/serving-certs
               name: cert
               readOnly: true
-            {{- end }}
-            {{- if .Values.controllerManager.enabledCaCerts }}
+{{- end }}
+{{- if .Values.controllerManager.enabledCaCerts }}
             - mountPath: /etc/ssl/certs/ca-certificates.crt
               name: ca-certificates
               subPath: ca-certificates.crt
               readOnly: true
-            {{- end }}
-      terminationGracePeriodSeconds: 30
-      securityContext:
-        {{- toYaml .Values.controllerManager.securityContext | nindent 8 }}
-      serviceAccountName: {{ .Values.controllerManager.rbac.serviceAccountName | default (include "adcs-issuer.fullname" .) }}
+{{- end }}
       volumes:
-        {{- if .Values.controllerManager.enabledWebHooks }}
+{{- if .Values.controllerManager.enabledWebHooks }}
         - name: cert
           secret:
             defaultMode: 420
             secretName: webhook-server-cert
-        {{- end }}
-        {{- if .Values.controllerManager.enabledCaCerts }}
+{{- end }}
+{{- if .Values.controllerManager.enabledCaCerts }}
         - name: ca-certificates
           secret:
             defaultMode: 420
-            secretName: {{ .Values.controllerManager.caCertsSecretName | default "ca-certificates" }}
-        {{- end }}
-      {{- with .Values.nodeSelector }}
+            secretName: {{ squote .Values.controllerManager.caCertsSecretName }}
+{{- end }}
+      terminationGracePeriodSeconds: {{ .Values.controllerManager.terminationGracePeriodSeconds }}
+{{- with $.Values.controllerManager.securityContext }}
+      securityContext:
+{{-     toYaml . | nindent 8 }}
+{{- end }}
+{{- with $.Values.controllerManager.tolerations }}
+      tolerations:
+{{-     toYaml . | nindent 8 }}
+{{- end }}
+{{- with $.Values.controllerManager.topologySpreadConstraints }}
+      topologySpreadConstraints:
+{{-   toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+{{- end }}
+{{- if or $.Values.controllerManager.nodeAffinity $.Values.controllerManager.podAffinity $.Values.controllerManager.podAntiAffinity }}
+      affinity:
+{{-   with $.Values.controllerManager.nodeAffinity }}
+        nodeAffinity:
+{{-     toYaml . | nindent 10 }}
+{{-   end }}
+{{-   with $.Values.controllerManager.podAffinity }}
+        podAffinity:
+{{-     toYaml . | nindent 10 }}
+{{-   end }}
+{{-   with $.Values.controllerManager.podAntiAffinity }}
+        podAntiAffinity:
+{{-     toYaml . | nindent 10 }}
+{{-   end }}
+{{- end }}
