@@ -1,4 +1,5 @@
 {{- if .Values.metricsService.enabled }}
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -15,4 +16,21 @@ spec:
     {{- include "chart.selectorLabels" . | nindent 4 }}
   ports:
     {{- .Values.metricsService.ports | toYaml | nindent 4 }}
+{{- end }}
+{{- if .Values.controllerManager.enabledWebHooks }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "chart.fullname" . }}-webhook-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.webhookService.type }}
+  selector:
+    {{- include "chart.selectorLabels" . | nindent 4 }}
+    control-plane: controller-manager
+  ports:
+    {{- .Values.webhookService.ports | toYaml | nindent 4 }}
 {{- end }}
