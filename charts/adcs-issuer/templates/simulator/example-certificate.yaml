@@ -6,7 +6,7 @@ metadata:
   name: {{ .Values.simulator.exampleCertificate.name | default "adcs-sim-certificate" }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "adcs-issuer.labels" . | nindent 4 }}
 spec:
   commonName: {{ .Values.simulator.exampleCertificate.commonName | default "example.com" }}
   dnsNames:

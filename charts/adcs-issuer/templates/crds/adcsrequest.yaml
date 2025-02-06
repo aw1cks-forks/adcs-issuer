@@ -4,10 +4,10 @@ kind: CustomResourceDefinition
 metadata:
   name: adcsrequests.adcs.certmanager.csf.nokia.com
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "chart.fullname" . }}-
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "adcs-issuer.fullname" . }}-
     controller-gen.kubebuilder.io/version: v0.7.0
   labels:
-  {{- include "chart.labels" . | nindent 4 }}
+  {{- include "adcs-issuer.labels" . | nindent 4 }}
 spec:
   group: adcs.certmanager.csf.nokia.com
   names:

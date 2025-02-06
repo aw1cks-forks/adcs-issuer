@@ -3,18 +3,18 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: {{ include "chart.fullname" . }}-mutating-webhook-configuration
+  name: {{ include "adcs-issuer.fullname" . }}-mutating-webhook-configuration
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "chart.fullname" . }}-
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "adcs-issuer.fullname" . }}-
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "adcs-issuer.labels" . | nindent 4 }}
 webhooks:
   - name: adcsissuer-mutation.adcs.certmanager.csf.nokia.com
     admissionReviewVersions:
       - v1
     clientConfig:
       service:
-        name: {{ include "chart.fullname" . }}-webhook-service
+        name: {{ include "adcs-issuer.fullname" . }}-webhook-service
         namespace: {{ .Release.Namespace }}
         path: /mutate-adcs-certmanager-csf-nokia-com-v1-adcsissuer
     failurePolicy: Fail
@@ -35,7 +35,7 @@ webhooks:
       - v1
     clientConfig:
       service:
-        name: {{ include "chart.fullname" . }}-webhook-service
+        name: {{ include "adcs-issuer.fullname" . }}-webhook-service
         namespace: {{ .Release.Namespace }}
         path: /mutate-batch-certmanager-csf-nokia-com-v1-clusteradcsissuer
     failurePolicy: Fail

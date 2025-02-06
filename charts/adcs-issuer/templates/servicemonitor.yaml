@@ -3,10 +3,10 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "chart.fullname" . }}
+  name: {{ include "adcs-issuer.fullname" . }}
   labels:
     control-plane: controller-manager
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "adcs-issuer.labels" . | nindent 4 }}
 spec:
   endpoints:
 {{- range $.Values.metricsService.ports }}
@@ -20,5 +20,5 @@ spec:
   selector:
     matchLabels:
       control-plane: controller-manager
-      {{- include "chart.labels" . | nindent 6 }}
+      {{- include "adcs-issuer.labels" . | nindent 6 }}
 {{- end }}

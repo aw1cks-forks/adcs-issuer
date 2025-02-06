@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "chart.fullname" . }}-controller-manager
+  name: {{ include "adcs-issuer.fullname" . }}-controller-manager
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: controller-manager
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "adcs-issuer.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.controllerManager.replicas }}
   strategy:
@@ -13,12 +13,12 @@ spec:
   selector:
     matchLabels:
       control-plane: controller-manager
-      {{- include "chart.selectorLabels" . | nindent 6 }}
+      {{- include "adcs-issuer.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         control-plane: controller-manager
-        {{- include "chart.selectorLabels" . | nindent 8 }}
+        {{- include "adcs-issuer.selectorLabels" . | nindent 8 }}
     spec:
       {{- if .Values.controllerManager.topologySpreadConstraints }}
       topologySpreadConstraints:
@@ -109,7 +109,7 @@ spec:
       terminationGracePeriodSeconds: 30
       securityContext:
         {{- toYaml .Values.controllerManager.securityContext | nindent 8 }}
-      serviceAccountName: {{ .Values.controllerManager.rbac.serviceAccountName | default (include "chart.fullname" .) }}
+      serviceAccountName: {{ .Values.controllerManager.rbac.serviceAccountName | default (include "adcs-issuer.fullname" .) }}
       volumes:
         {{- if .Values.controllerManager.enabledWebHooks }}
         - name: cert

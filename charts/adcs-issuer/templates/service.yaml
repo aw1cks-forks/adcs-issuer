@@ -3,17 +3,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-{{- $metricsServiceName := printf "%s-controller-metrics" (include "chart.fullname" . | trunc 44) }}
+{{- $metricsServiceName := printf "%s-controller-metrics" (include "adcs-issuer.fullname" . | trunc 44) }}
   name: {{ default $metricsServiceName $.Values.metricsService.nameOverride }}
   namespace: {{ .Release.Namespace }}
   labels:
     control-plane: controller-manager
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "adcs-issuer.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.metricsService.type | default "ClusterIP" }}
   selector:
     control-plane: controller-manager
-    {{- include "chart.selectorLabels" . | nindent 4 }}
+    {{- include "adcs-issuer.selectorLabels" . | nindent 4 }}
   ports:
     {{- .Values.metricsService.ports | toYaml | nindent 4 }}
 {{- end }}
@@ -22,14 +22,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "chart.fullname" . }}-webhook-service
+  name: {{ include "adcs-issuer.fullname" . }}-webhook-service
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "chart.labels" . | nindent 4 }}
+    {{- include "adcs-issuer.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.webhookService.type }}
   selector:
-    {{- include "chart.selectorLabels" . | nindent 4 }}
+    {{- include "adcs-issuer.selectorLabels" . | nindent 4 }}
     control-plane: controller-manager
   ports:
     {{- .Values.webhookService.ports | toYaml | nindent 4 }}
