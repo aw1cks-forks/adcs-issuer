@@ -58,3 +58,54 @@ Create the service account name, with the option to override or use a default.
     {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "adcs-issuer.containerImage" -}}
+image: {{ printf "%s:%s" .image.repository (default .default .image.version) | squote }}
+imagePullPolicy: {{ default "Always" .image.pullPolicy | squote }}
+{{- end -}}
+
+{{- define "adcs-issuer.containerArgs" -}}
+{{- with .arguments -}}
+args:
+{{-     range $k, $v := . }}
+  - --{{ $k }}{{ if $v }}={{ $v }}{{ end }}
+{{-     end }}
+{{-   end }}
+{{- end }}
+
+{{- define "adcs-issuer.containerEnv" -}}
+{{-   with .environment -}}
+{{-     range $k, $v := . }}
+- name: {{ squote $k }}
+  value: {{ squote $v }}
+{{-     end }}
+{{-   end }}
+{{- end }}
+
+{{- define "adcs-issuer.containerResources" -}}
+{{-   with .resources }}
+resources:
+{{-     toYaml . | nindent 2 -}}
+{{-   end -}}
+{{- end -}}
+
+{{- define "adcs-issuer.containerReadinessProbe" -}}
+{{-   with .readinessProbe }}
+readinessProbe:
+{{-     toYaml . | nindent 2 -}}
+{{-   end -}}
+{{- end -}}
+
+{{- define "adcs-issuer.containerLivenessProbe" -}}
+{{-   with .livenessProbe }}
+livenessProbe:
+{{-     toYaml . | nindent 2 -}}
+{{-   end -}}
+{{- end -}}
+
+{{- define "adcs-issuer.containerSecurityContext" -}}
+{{-   with .securityContext }}
+securityContext:
+{{-     toYaml . | nindent 2 -}}
+{{-   end -}}
+{{- end -}}
