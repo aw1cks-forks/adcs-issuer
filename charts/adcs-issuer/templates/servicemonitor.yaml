@@ -11,7 +11,7 @@ spec:
   endpoints:
 {{- range $.Values.metricsService.ports }}
   - path: /metrics
-    port: {{ .port | squote }}
+    targetPort: {{ .targetPort | squote }}
     scheme: {{ $.Values.metricsService.serviceMonitor.scheme }}
 {{- end }}
   namespaceSelector:

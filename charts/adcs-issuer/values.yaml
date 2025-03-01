@@ -139,7 +139,7 @@ metricsService:
   ports:
   - name: http
     port: 8080
-    targetPort: 8080
+    targetPort: metrics
   type: ClusterIP                             # Type of Kubernetes service.
 
 # @section Webhook Service
